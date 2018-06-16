@@ -17,3 +17,7 @@ df <- df %>% mutate(
 	result_not_properly_provided = case_when(result_not_properly_provided == "result2_false" ~ FALSE, result_not_properly_provided == "result2_true" ~ TRUE, TRUE ~ NA),
 	out_of_year_range = case_when(out_of_year_range == "oyrange_false" ~ FALSE, out_of_year_range == "oyrange_true" ~ TRUE, TRUE ~ NA),
 	bad_length = case_when(bad_length == "blen_false" ~ FALSE, bad_length == "blen_true" ~ TRUE, TRUE ~ NA))
+df$number <- as.numeric(df$number)
+df$white_rating <- as.numeric(df$white_rating)
+df$black_rating <- as.numeric(df$black_rating)
+df$total_moves <- as.numeric(df$total_moves)
