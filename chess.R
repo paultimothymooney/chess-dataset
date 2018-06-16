@@ -24,7 +24,7 @@ df$black_rating <- as.numeric(df$black_rating)
 df$total_moves <- as.numeric(df$total_moves)
 df$date <- ymd(df$date)
 df <- df[-grep("1-0|0-1|1/2-1/2", df$result, invert = TRUE),]
-years <- as_tibble(substr(df$date, 1, 4))
+#years <- as_tibble(substr(df$date, 1, 4))
 result_tendency <- function(move, colour = "W") {
     total_occurences <- fn$sqldf('select count(*) from df where moves like "%$move%"')
     if (colour == "W") {
@@ -43,6 +43,24 @@ win_tendency <- function(move, colour = "W") {
 	wins <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "0-1"')
 	}
 	return(wins/total_occurences)
+}
+draw_tendency <- function(move) {
+	total_occurences <- fn$sqldf('select count(*) from df where moves like "%$move%"')
+	draws <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1/2-1/2"')
+	return(draws/total_occurences)
+}
+move_stats <- function(move, colour = "W") {
+    total_occurences <- fn$sqldf('select count(*) from df where moves like "%$move%"')
+    if (colour == "W") {
+        wins <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1-0"')
+        losses <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "0-1"')
+    } else if (colour == "B") {
+        wins <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "0-1"')
+        losses <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1-0"')
+    }
+    draws <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1/2-1/2"')
+    result_list <- list("occurences" = total_occurences, "win %" = wins/total_occurences*100, "loss %" = losses/total_occurences*100, "draw %" = draws/total_occurences*100)
+    return(result_list)
 }
 
 # nrow(df)
