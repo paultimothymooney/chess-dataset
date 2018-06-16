@@ -25,6 +25,25 @@ df$total_moves <- as.numeric(df$total_moves)
 df$date <- ymd(df$date)
 df <- df[-grep("1-0|0-1|1/2-1/2", df$result, invert = TRUE),]
 years <- as_tibble(substr(df$date, 1, 4))
+result_tendency <- function(move, colour = "W") {
+    total_occurences <- fn$sqldf('select count(*) from df where moves like "%$move%"')
+    if (colour == "W") {
+        wins <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1-0"')
+    } else if (colour == "B") {
+        wins <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "0-1"')
+    }
+    draws <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1/2-1/2"')
+    return(wins/total_occurences + draws/total_occurences*0.5)
+}
+win_tendency <- function(move, colour = "W") {
+	total_occurences <- fn$sqldf('select count(*) from df where moves like "%$move%"')
+	if (colour == "W") {
+	wins <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1-0"')
+	} else if (colour == "B") {
+	wins <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "0-1"')
+	}
+	return(wins/total_occurences)
+}
 
 # nrow(df)
 # sqldf('select count(*) from df where total_moves is 0')
@@ -38,3 +57,5 @@ years <- as_tibble(substr(df$date, 1, 4))
 # ggplot(years, aes(years)) + geom_histogram(binwidth = 1) + xlim(1995,2008)
 # sqldf('select count(*) from df where moves like "%W1.d4 B1.Nf6%" and result is "1-0"')/sqldf('select count(*) from df where moves like "%W1.d4 B1.Nf6%"')*100
 # sqldf('select count(*) from df where moves like "%W1.e4%" and result is "1-0"')/sqldf('select count(*) from df where moves like "%W1.e4%"') + sqldf('select count(*) from df where moves like "%W1.e4%" and result is "1/2-1/2"')/sqldf('select count(*) from df where moves like "%W1.e4%"')*0.5
+# e4 <- "W1.e4"
+# fn$sqldf('select count(*) from df where moves like "%$e4%"')
