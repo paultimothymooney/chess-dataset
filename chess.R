@@ -50,7 +50,6 @@ draw_tendency <- function(move) {
 	return(draws/total_occurences)
 }
 move_stats <- function(move, colour = "W") {
-    total_occurences <- fn$sqldf('select count(*) from df where moves like "%$move%"')
     if (colour == "W") {
         wins <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1-0"')
         losses <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "0-1"')
@@ -59,6 +58,7 @@ move_stats <- function(move, colour = "W") {
         losses <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1-0"')
     }
     draws <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1/2-1/2"')
+    total_occurences = wins + losses + draws
     result_list <- list("occurences" = total_occurences, "win %" = wins/total_occurences*100, "loss %" = losses/total_occurences*100, "draw %" = draws/total_occurences*100)
     return(result_list)
 }
