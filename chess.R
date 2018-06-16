@@ -21,3 +21,14 @@ df$number <- as.numeric(df$number)
 df$white_rating <- as.numeric(df$white_rating)
 df$black_rating <- as.numeric(df$black_rating)
 df$total_moves <- as.numeric(df$total_moves)
+df$date <- ymd(df$date)
+df <- df[-grep("1-0|0-1|1/2-1/2", df$result, invert = TRUE),]
+
+# nrow(df)
+# sqldf('select count(*) from df where total_moves is 0')
+# sqldf('select count(*) from df where moves like "%W1.e4%"')/nrow(df)*100
+# table(unlist(df$result))
+# grep("1-0|0-1|1/2-1/2", df$result, invert = TRUE)
+# ggplot(df, aes(x = df$total_moves)) + geom_histogram(binwidth = 5) + xlim(0,200)
+# ggplot(df, aes(x = df$white_rating)) + geom_histogram(binwidth = 5) + xlim(1000,2851)
+# ggplot(df, aes(x = df$white_rating)) + geom_histogram(binwidth = 5) + xlim(1000,max(df$white_rating, na.rm = TRUE))
