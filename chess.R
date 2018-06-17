@@ -1,6 +1,7 @@
 library(tidyverse)
 library(sqldf)
 library(ggplot2)
+library(ggpubr)
 df <- read_lines("data.txt", skip = 5)
 df <- str_split(df, " ", 18, TRUE)
 df <- as_tibble(df)
@@ -62,6 +63,26 @@ move_stats <- function(move, colour = "W") {
     result_list <- list("occurences" = total_occurences, "win %" = wins/total_occurences*100, "loss %" = losses/total_occurences*100, "draw %" = draws/total_occurences*100)
     return(result_list)
 }
+movedf <- data.frame(matrix(ncol = 6, nrow = 0))
+colnames(movedf) <- c("move", "colour", "occurences", "win %", "loss %", "draw %")
+move_stats_append_df <- function(move, colour = "W", dataframe) {
+    if (colour == "W") {
+        wins <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1-0"')
+        losses <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "0-1"')
+    } else if (colour == "B") {
+        wins <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "0-1"')
+        losses <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1-0"')
+    }
+    draws <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1/2-1/2"')
+    total_occurences = wins + losses + draws
+    result_list <- list("move" = move, "colour" = colour, "occurences" = total_occurences, "win %" = wins/total_occurences*100, "loss %" = losses/total_occurences*100, "draw %" = draws/total_occurences*100)
+    if (ncol(dataframe) > 0) {
+        dataframe[nrow(dataframe) + 1,] <- result_list
+        return(list(result_list, dataframe))
+    } else {
+        return(result_list)
+    }
+}
 
 # nrow(df)
 # sqldf('select count(*) from df where total_moves is 0')
@@ -77,3 +98,11 @@ move_stats <- function(move, colour = "W") {
 # sqldf('select count(*) from df where moves like "%W1.e4%" and result is "1-0"')/sqldf('select count(*) from df where moves like "%W1.e4%"') + sqldf('select count(*) from df where moves like "%W1.e4%" and result is "1/2-1/2"')/sqldf('select count(*) from df where moves like "%W1.e4%"')*0.5
 # e4 <- "W1.e4"
 # fn$sqldf('select count(*) from df where moves like "%$e4%"')
+# cor(df$white_rating, df$black_rating,  method = "pearson", use = "na.or.complete")
+# ggscatter(df, x = "white_rating", y = "black_rating")
+# subset(movedf, rownames(movedf) %in% "W1.e4")
+
+ggscatter(df, x = "white_rating", y = "black_rating", 
+add = "reg.line", conf.int = TRUE, 
+cor.coef = TRUE, cor.method = "pearson",
+xlab = "White rating", ylab = "Black rating")
