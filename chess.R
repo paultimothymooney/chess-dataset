@@ -65,7 +65,7 @@ move_stats <- function(move, colour = "W") {
 }
 movedf <- data.frame(matrix(ncol = 6, nrow = 0))
 colnames(movedf) <- c("move", "colour", "occurences", "win %", "loss %", "draw %")
-move_stats_append_df <- function(move, colour = "W", dataframe) {
+move_stats_append_df <- function(move, colour = "W") {
     if (colour == "W") {
         wins <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1-0"')
         losses <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "0-1"')
@@ -76,13 +76,14 @@ move_stats_append_df <- function(move, colour = "W", dataframe) {
     draws <- fn$sqldf('select count(*) from df where moves like "%$move%" and result is "1/2-1/2"')
     total_occurences = wins + losses + draws
     result_list <- list("move" = move, "colour" = colour, "occurences" = total_occurences, "win %" = wins/total_occurences*100, "loss %" = losses/total_occurences*100, "draw %" = draws/total_occurences*100)
-    if (ncol(dataframe) > 0) {
-        dataframe[nrow(dataframe) + 1,] <- result_list
-        return(list(result_list, dataframe))
-    } else {
-        return(result_list)
-    }
+    movedf[nrow(movedf) + 1,] <<- result_list
+    return(list(result_list))
 }
+df$total_white_moves <- str_count(df$moves, pattern = "W\\d+\\.")
+df$total_black_moves <- str_count(df$moves, pattern = "B\\d+\\.")
+df$white_captures <- str_count(df$moves, pattern = "W\\d+\\.+\\Dx")
+df$black_captures <- str_count(df$moves, pattern = "B\\d+\\.+\\Dx")
+white_double_rook_sac <- df[grep("B\\d+\\.Qxa1\\+ W\\d+\\.K\\D\\d B\\d+\\.Qxh1", df$moves),]
 
 # nrow(df)
 # sqldf('select count(*) from df where total_moves is 0')
@@ -101,6 +102,80 @@ move_stats_append_df <- function(move, colour = "W", dataframe) {
 # cor(df$white_rating, df$black_rating,  method = "pearson", use = "na.or.complete")
 # ggscatter(df, x = "white_rating", y = "black_rating")
 # subset(movedf, rownames(movedf) %in% "W1.e4")
+# ggplot(movedf2, aes(x=move,y = occurences)) +geom_bar(stat = "identity")
+# str_count(df$moves, pattern = "W\\d+\\.")
+# str_extract_all(df$moves[1], pattern = "W\\d+\\.+\\Dx")
+# grep("B\\d+\\.Qxa1+", df$moves)
+# match(1, str_detect(df$moves, "B\\d+\\.Qxa1\\+ W\\d+\\.K\\D\\d B\\d+\\.Qxh1"))
+
+# takes a loooooooooong time
+move_stats_append_df("W1.a3")
+move_stats_append_df("W1.a4")
+move_stats_append_df("W1.b3")
+move_stats_append_df("W1.b4")
+move_stats_append_df("W1.c3")
+move_stats_append_df("W1.c4")
+move_stats_append_df("W1.d3")
+move_stats_append_df("W1.d4")
+move_stats_append_df("W1.e3")
+move_stats_append_df("W1.e4")
+move_stats_append_df("W1.f3")
+move_stats_append_df("W1.f4")
+move_stats_append_df("W1.g3")
+move_stats_append_df("W1.g4")
+move_stats_append_df("W1.h3")
+move_stats_append_df("W1.h4")
+move_stats_append_df("W1.Na3")
+move_stats_append_df("W1.Nc3")
+move_stats_append_df("W1.Nf3")
+move_stats_append_df("W1.Nh3")
+
+movedf2 <- as.data.frame(lapply(movedf, unlist))
+movedf2 <- movedf2[order(movedf2$occurences, decreasing = TRUE),]
+
+     move colour occurences    win %   loss %   draw %
+1   W1.a3      W       1651 35.43307 39.61236 24.95457
+2   W1.a4      W        356 32.30337 29.21348 38.48315
+3   W1.b3      W      14374 36.06512 35.23723 28.69765
+4   W1.b4      W       8205 34.19866 40.37782 25.42352
+5   W1.c3      W        981 33.33333 40.26504 26.40163
+6   W1.c4      W     246611 38.06805 29.34581 32.58614
+7   W1.d3      W       2202 34.28701 40.69028 25.02271
+8   W1.d4      W    1120403 38.81211  29.4112 31.77669
+9   W1.e3      W       2958 33.40095 46.07843 20.52062
+10  W1.e4      W    1783129 38.94065 32.64099 28.41836
+11  W1.f3      W         99 31.31313 43.43434 25.25253
+12  W1.f4      W      24134 35.74625 39.42156 24.83219
+13  W1.g3      W      25824 37.84464 28.62841 33.52695
+14  W1.g4      W       1144 37.67483 44.14336 18.18182
+15  W1.h3      W        271 32.47232 43.17343 24.35424
+16  W1.h4      W        218  35.3211 36.23853 28.44037
+17 W1.Na3      W         45 46.66667 35.55556 17.77778
+18 W1.Nc3      W      10118 38.51552  35.0761 26.40838
+19 W1.Nf3      W     280190 37.59163 27.26721 35.14115
+20 W1.Nh3      W        150 29.33333 48.66667       22
+
+     move colour occurences    win..   loss..   draw..
+10  W1.e4      W    1783129 38.94065 32.64099 28.41836
+8   W1.d4      W    1120403 38.81211 29.41120 31.77669
+19 W1.Nf3      W     280190 37.59163 27.26721 35.14115
+6   W1.c4      W     246611 38.06805 29.34581 32.58614
+13  W1.g3      W      25824 37.84464 28.62841 33.52695
+12  W1.f4      W      24134 35.74625 39.42156 24.83219
+3   W1.b3      W      14374 36.06512 35.23723 28.69765
+18 W1.Nc3      W      10118 38.51552 35.07610 26.40838
+4   W1.b4      W       8205 34.19866 40.37782 25.42352
+9   W1.e3      W       2958 33.40095 46.07843 20.52062
+7   W1.d3      W       2202 34.28701 40.69028 25.02271
+1   W1.a3      W       1651 35.43307 39.61236 24.95457
+14  W1.g4      W       1144 37.67483 44.14336 18.18182
+5   W1.c3      W        981 33.33333 40.26504 26.40163
+2   W1.a4      W        356 32.30337 29.21348 38.48315
+15  W1.h3      W        271 32.47232 43.17343 24.35424
+16  W1.h4      W        218 35.32110 36.23853 28.44037
+20 W1.Nh3      W        150 29.33333 48.66667 22.00000
+11  W1.f3      W         99 31.31313 43.43434 25.25253
+17 W1.Na3      W         45 46.66667 35.55556 17.77778
 
 ggscatter(df, x = "white_rating", y = "black_rating", 
 add = "reg.line", conf.int = TRUE, 
