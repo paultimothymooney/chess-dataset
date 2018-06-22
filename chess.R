@@ -85,6 +85,38 @@ df$white_captures <- str_count(df$moves, pattern = "W\\d+\\.+\\Dx")
 df$black_captures <- str_count(df$moves, pattern = "B\\d+\\.+\\Dx")
 white_double_rook_sac <- df[grep("B\\d+\\.Qxa1\\+ W\\d+\\.K\\D\\d B\\d+\\.Qxh1", df$moves),]
 
+unique_games <- data.frame(matrix(ncol = 2, nrow = 0))
+colnames(unique_games) <- c("total_unique", "percentage_unique")
+
+find_unique_games <- function(up_until) {
+    vec <- substr(df$moves, 1, regexpr(up_until, df$moves) - 1)
+    unique <- sum(!duplicated(vec) & !duplicated(vec, fromLast = TRUE))
+    total_values <- length(grep(up_until, chr_vec))
+    percentage_unique <- unique/total_values*100
+    result_list <- list("total_unique" = unique, "percentage_unique" = percentage_unique)
+    unique_games[nrow(unique_games) + 1,] <<- result_list
+}
+
+find_unique_games('W2\\.')
+find_unique_games('W3\\.')
+find_unique_games('W4\\.')
+find_unique_games('W5\\.')
+find_unique_games('W6\\.')
+find_unique_games('W7\\.')
+find_unique_games('W8\\.')
+find_unique_games('W9\\.')
+find_unique_games('W10\\.')
+find_unique_games('W11\\.')
+find_unique_games('W12\\.')
+find_unique_games('W13\\.')
+find_unique_games('W14\\.')
+find_unique_games('W15\\.')
+find_unique_games('W16\\.')
+find_unique_games('W17\\.')
+find_unique_games('W18\\.')
+find_unique_games('W19\\.')
+find_unique_games('W20\\.')
+
 # nrow(df)
 # sqldf('select count(*) from df where total_moves is 0')
 # sqldf('select count(*) from df where moves like "%W1.e4%"')/nrow(df)*100
@@ -107,6 +139,10 @@ white_double_rook_sac <- df[grep("B\\d+\\.Qxa1\\+ W\\d+\\.K\\D\\d B\\d+\\.Qxh1",
 # str_extract_all(df$moves[1], pattern = "W\\d+\\.+\\Dx")
 # grep("B\\d+\\.Qxa1+", df$moves)
 # match(1, str_detect(df$moves, "B\\d+\\.Qxa1\\+ W\\d+\\.K\\D\\d B\\d+\\.Qxh1"))
+# sqldf('select count(distinct(moves)) from df')
+
+#unique_games_df <- data.frame(matrix(ncol = 2, nrow = 0))
+#colnames(unique_games_df) <- c("total_unique", "percentage_unique")
 
 # takes a loooooooooong time
 move_stats_append_df("W1.a3")
