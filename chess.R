@@ -3,6 +3,7 @@ library(sqldf)
 library(ggplot2)
 library(ggpubr)
 library(lubridate)
+library(stringi)
 df <- read_lines("data.txt", skip = 5)
 df <- str_split(df, " ", 18, TRUE)
 df <- as_tibble(df)
@@ -185,6 +186,37 @@ move_stats_append_df("W1.e4 B1.e5 W2.Nf3 B2.Nc6 W3.Bb5 B3.Nf6")
 move_stats_append_df("W1.d4 B1.f5")
 # Queen's Gambit Declined
 move_stats_append_df("W1.d4 B1.d5 W2.c4 B2.e6")
+
+queen_info <- data.frame(matrix(ncol = 4, nrow = 0), stringsAsFactors = FALSE)
+colnames(queen_info) <- c("white_queen_last_position", "white_queen_captured", "black_queen_last_position", "black_queen_captured")
+populate_queen_info <- function() {
+    for (i in 1:100) {
+        #white
+        white_last_queen_position_index <- stri_locate_last_regex(df$moves[i], "W\\d+\\.Qx?")[2]
+        if (is.na(white_last_queen_position_index)) {
+            white_last_queen_position <- 'd1'
+            white_remainder_of_game <- df$moves[i]
+        } else {
+            white_last_queen_position <- str_sub(df$moves[i], white_last_queen_position_index + 1, white_last_queen_position_index + 2)
+            white_remainder_of_game <- str_sub(df$moves[i], white_last_queen_position_index + 3, nchar(df$moves[i]))
+        }
+        white_is_captured <- grepl(white_last_queen_position, white_remainder_of_game)
+        #black
+        black_last_queen_position_index <- stri_locate_last_regex(df$moves[i], "B\\d+\\.Qx?")[2]
+        if (is.na(black_last_queen_position_index)) {
+            black_last_queen_position <- 'd8'
+            black_remainder_of_game <- df$moves[i]
+        } else {
+            black_last_queen_position <- str_sub(df$moves[i], black_last_queen_position_index + 1, black_last_queen_position_index + 2)
+            black_remainder_of_game <- str_sub(df$moves[i], black_last_queen_position_index + 3, nchar(df$moves[i]))
+        }
+        black_is_captured <- grepl(black_last_queen_position, black_remainder_of_game)
+        #add to df
+        result_list <- list("white_queen_last_position" = white_last_queen_position, "white_queen_captured" = white_is_captured, "black_queen_last_position" = black_last_queen_position, "black_queen_captured" = black_is_captured)
+        queen_info[nrow(queen_info) + 1,] <<- result_list
+    }
+
+populate_queen_info()
 
      move colour occurrences    win %   loss %   draw %
 1   W1.a3      W       1651 35.43307 39.61236 24.95457
