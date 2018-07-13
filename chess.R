@@ -100,6 +100,47 @@ find_unique_games <- function(up_until) {
     unique_games[nrow(unique_games) + 1,] <<- result_list
 }
 
+add_queen <- function() { 
+   for (i in 1:nrow(df)) {
+    #white
+    white_last_queen_position_index <- stri_locate_last_regex(datarow$moves, "W\\d+\\.Qx?")[2]
+    if (is.na(white_last_queen_position_index)) {
+      white_last_queen_position <- 'd1'
+      white_remainder_of_game <- df$moves[i]
+    } else {
+      white_last_queen_position <- str_sub(datarow$moves, white_last_queen_position_index + 1, white_last_queen_position_index + 2)
+      white_remainder_of_game <- str_sub(datarow$moves, white_last_queen_position_index + 3, nchar(datarow$moves))
+    }
+    white_is_captured <- grepl(white_last_queen_position, white_remainder_of_game)
+    #black
+    black_last_queen_position_index <- stri_locate_last_regex(datarow$moves, "B\\d+\\.Qx?")[2]
+    if (is.na(black_last_queen_position_index)) {
+      black_last_queen_position <- 'd8'
+      black_remainder_of_game <- datarow$moves
+    } else {
+      black_last_queen_position <- str_sub(datarow$moves, black_last_queen_position_index + 1, black_last_queen_position_index + 2)
+      black_remainder_of_game <- str_sub(datarow$moves, black_last_queen_position_index + 3, nchar(datarow$moves))
+    }
+    black_is_captured <- grepl(black_last_queen_position, black_remainder_of_game)
+    #add to df
+
+    ndf <- data.frame(white_queen_last_position = white_last_queen_position, 
+                      white_queen_captured = white_is_captured,
+                      black_queen_last_position = black_last_queen_position,
+                      black_queen_captured = black_is_captured)
+    return(ndf)
+   }
+}
+
+library(plyr)
+df <- adply(df, 1, add_queen)
+
+df$white_queen_last_position <- as.character(df$white_queen_last_position)
+df$black_queen_last_position <- as.character(df$black_queen_last_position)
+
+df$white_queen_last_position <- gsub("^(?![a-h][1-8]).*$", "na", df$white_queen_last_position, perl = TRUE)
+df$black_queen_last_position <- gsub("^(?![a-h][1-8]).*$", "na", df$black_queen_last_position, perl = TRUE)
+
 find_unique_games('W2\\.')
 find_unique_games('W3\\.')
 find_unique_games('W4\\.')
@@ -119,6 +160,9 @@ find_unique_games('W17\\.')
 find_unique_games('W18\\.')
 find_unique_games('W19\\.')
 find_unique_games('W20\\.')
+
+# sqldf('select count(*) from df where result is "1-0" and white_queen_captured is 1 and black_queen_captured is 0')/sqldf('select count(*) from df where white_queen_captured is 1 and black_queen_captured is 0')*100
+# ggplot(df, aes(x = white_queen_last_position)) + geom_bar() + ggsave("abc.png", width = 20, height = 10)
 
 # nrow(df)
 # sqldf('select count(*) from df where total_moves is 0')
@@ -143,6 +187,10 @@ find_unique_games('W20\\.')
 # grep("B\\d+\\.Qxa1+", df$moves)
 # match(1, str_detect(df$moves, "B\\d+\\.Qxa1\\+ W\\d+\\.K\\D\\d B\\d+\\.Qxh1"))
 # sqldf('select count(distinct(moves)) from df')
+
+#test <- strsplit(df$moves[3], NULL)[[1]]
+#test_rev <- rev(test)
+#paste(test_rev, collapse='')
 
 #unique_games_df <- data.frame(matrix(ncol = 2, nrow = 0))
 #colnames(unique_games_df) <- c("total_unique", "percentage_unique")
@@ -187,36 +235,26 @@ move_stats_append_df("W1.d4 B1.f5")
 # Queen's Gambit Declined
 move_stats_append_df("W1.d4 B1.d5 W2.c4 B2.e6")
 
-queen_info <- data.frame(matrix(ncol = 4, nrow = 0), stringsAsFactors = FALSE)
-colnames(queen_info) <- c("white_queen_last_position", "white_queen_captured", "black_queen_last_position", "black_queen_captured")
-populate_queen_info <- function() {
-    for (i in 1:100) {
-        #white
-        white_last_queen_position_index <- stri_locate_last_regex(df$moves[i], "W\\d+\\.Qx?")[2]
-        if (is.na(white_last_queen_position_index)) {
-            white_last_queen_position <- 'd1'
-            white_remainder_of_game <- df$moves[i]
-        } else {
-            white_last_queen_position <- str_sub(df$moves[i], white_last_queen_position_index + 1, white_last_queen_position_index + 2)
-            white_remainder_of_game <- str_sub(df$moves[i], white_last_queen_position_index + 3, nchar(df$moves[i]))
-        }
-        white_is_captured <- grepl(white_last_queen_position, white_remainder_of_game)
-        #black
-        black_last_queen_position_index <- stri_locate_last_regex(df$moves[i], "B\\d+\\.Qx?")[2]
-        if (is.na(black_last_queen_position_index)) {
-            black_last_queen_position <- 'd8'
-            black_remainder_of_game <- df$moves[i]
-        } else {
-            black_last_queen_position <- str_sub(df$moves[i], black_last_queen_position_index + 1, black_last_queen_position_index + 2)
-            black_remainder_of_game <- str_sub(df$moves[i], black_last_queen_position_index + 3, nchar(df$moves[i]))
-        }
-        black_is_captured <- grepl(black_last_queen_position, black_remainder_of_game)
-        #add to df
-        result_list <- list("white_queen_last_position" = white_last_queen_position, "white_queen_captured" = white_is_captured, "black_queen_last_position" = black_last_queen_position, "black_queen_captured" = black_is_captured)
-        queen_info[nrow(queen_info) + 1,] <<- result_list
-    }
 
-populate_queen_info()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
      move colour occurrences    win %   loss %   draw %
 1   W1.a3      W       1651 35.43307 39.61236 24.95457
