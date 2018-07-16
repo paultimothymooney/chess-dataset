@@ -37,6 +37,94 @@ add = "reg.line", conf.int = TRUE,
 cor.coef = TRUE, cor.method = "pearson",
 xlab = "White rating", ylab = "Black rating")
 
+---
+
+# extracting columns 1 to 16 and empty column for 17
+df <- read.table(file = 'data.txt',  sep = " ")
+n <- nrow(df)
+
+# can also use
+# df <- read.table(text = line, sep = " ")
+
+# split string on both " ### " and "\n"  
+line = readLines('data.txt')
+str = grep(line, value=TRUE, pattern = "###")
+chr_vec <- unlist(strsplit(x = str, split = " ### |\n"))
+
+# indices for column 17 elements in chr_vec
+idx_17 <- 2*(1:n) 
+df['V17'] <- chr_vec[idx_17]
+
+# drop useless first column
+df <- subset(df, select = -c(V1))
+df <- subset(df, select = -c(V13))
+df <- subset(df, select = -c(V14))
+
+# name columns
+colnames(df) <- c("number", "date", "result", "white_rating", "black_rating", "total_moves", "date_missing", "result_missing", "white_rating_missing", "black_rating_missing", "event_date_missing", "different_start_position", "out_of_year_range", "bad_length", "moves")
+
+table(unlist(df$V3))
+
+sqldf('select count(*) from df where white_rating = "2644"')
+sqldf('select avg(white_rating) from df where white_rating <> "None"')
+sqldf('select count(*) from df where V17 like "%W1.e4%"')/nrow(df)*100
+
+white_ratings2 <- lapply(white_ratings, as.numeric)
+
+missing_game_moves <- grep("W1", line, invert = TRUE)
+line <- line[-missing_game_moves]
+
+length(grep("W1.e4", line))/length(line) * 100
+
+ggplot(df, aes(x = df$total_moves)) + geom_histogram()
+
+ggplot(subset(df),
+       aes(x=total_moves,
+           y=date))+
+  geom_point()
+
+---
+
+#find number of results
+length(grep("W1", chr_vec))
+
+#index of first match
+match(1, str_detect(line, "W1"))
+
+#if string is present, TRUE/FALSE
+grepl("W1", line)
+#or return TRUE if W1 ISN'T present
+!grepl("W1", line)
+
+#return indexes
+grep("W1", line)
+
+#return indexes where W1 isn't present
+grep("W1", line, invert = TRUE)
+#get rid of everything not containing "W1."
+df <- df[-grep("W1.", df, invert = TRUE),]
+
+#return where string is present
+line[grep("W1", line)]
+
+#or not present
+line[-grep("W1", line)]
+
+#find and replace
+gsub("e", "", group)
+
+#return string at start and end position
+substr(df2$V17[5], 120, 130)
+#locate position of string
+str_locate_all(pattern = "W1.", df2$V17[5])
+
+#return position of LAST match where it ENDS
+stri_locate_last_regex(df$moves[3], "W\\d+\\.Qx?")[2]
+#... or where it starts
+stri_locate_last_regex(df$moves[3], "W\\d+\\.Qx?")[1]
+
+---
+
      move colour occurrences    win %   loss %   draw %
 1   W1.a3      W       1651 35.43307 39.61236 24.95457
 2   W1.a4      W        356 32.30337 29.21348 38.48315
