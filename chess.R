@@ -101,7 +101,7 @@ find_unique_games <- function(up_until) {
     unique_games[nrow(unique_games) + 1,] <<- result_list
 }
 
-add_queen <- function() { 
+add_queen <- function(datarow) { 
    for (i in 1:nrow(df)) {
     #white
     white_last_queen_position_index <- stri_locate_last_regex(datarow$moves, "W\\d+\\.Qx?")[2]
